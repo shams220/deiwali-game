@@ -30,6 +30,10 @@ const ROCKET_FIREWORKS_AUDIO_URL = new URL(
   "../../assets/rocket-after-lauch-sound.mp3",
   import.meta.url,
 ).href;
+const JETHALAL_FIREWORKS_AUDIO_URL = new URL(
+  "../../assets/jethalal-sings-happy-diwali-dialogue-with-beats-heppy-diwali-2020-akshayediting_GzcHRFnA.mp3",
+  import.meta.url,
+).href;
 const ROCKET_FUSE_PATH = [
   { x: 0.38, y: 0.6 },
   { x: 0.405, y: 0.58 },
@@ -137,9 +141,14 @@ export class DiwaliScene extends Phaser.Scene {
       reducedMotion: this.callbacks.reducedMotion,
     });
     this.load.audio("rocket-fireworks", ROCKET_FIREWORKS_AUDIO_URL);
+    this.load.audio("jethalal-fireworks", JETHALAL_FIREWORKS_AUDIO_URL);
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      const sound = this.sound.add("rocket-fireworks");
-      this.fireworks.setRocketFireworksSound(sound);
+      if (this.cache.audio.exists("rocket-fireworks")) {
+        this.fireworks.setRocketFireworksSound(this.sound.add("rocket-fireworks"));
+      }
+      if (this.cache.audio.exists("jethalal-fireworks")) {
+        this.fireworks.setJethalalFireworksSound(this.sound.add("jethalal-fireworks"));
+      }
     });
     this.load.start();
 
@@ -198,7 +207,7 @@ export class DiwaliScene extends Phaser.Scene {
         this.fireworksAudioFadeComplete = false;
         this.fireworkVisualFadeComplete = false;
         void this.callbacks.audio
-          .fadeOutRocketFireworks(this.tweens, ROCKET_FIREWORKS_AUDIO_FADE_DURATION)
+          .fadeOutFireworksAudio(this.tweens, ROCKET_FIREWORKS_AUDIO_FADE_DURATION)
           .then(() => {
             this.fireworksAudioFadeComplete = true;
             this.tryCompleteFireworksFade();

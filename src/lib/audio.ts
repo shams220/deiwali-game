@@ -6,6 +6,11 @@ interface AudioContextWindow extends Window {
 
 type RocketFireworksSound = Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound;
 
+interface FireworksVolumeOptions {
+  rocket?: number;
+  jethalal?: number;
+}
+
 export class GiftAudio {
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -16,8 +21,16 @@ export class GiftAudio {
   private fuseGain: GainNode | null = null;
   private musicNodes: Array<{ oscillator: OscillatorNode; gain: GainNode }> = [];
   private rocketFireworksSound: RocketFireworksSound | null = null;
+  private jethalalFireworksSound: RocketFireworksSound | null = null;
   private rocketFireworksStarted = false;
   private resumeInProgress = false;
+  private readonly rocketFireworksVolume: number;
+  private readonly jethalalFireworksVolume: number;
+
+  constructor(volumes: FireworksVolumeOptions = {}) {
+    this.rocketFireworksVolume = volumes.rocket ?? 0.56;
+    this.jethalalFireworksVolume = volumes.jethalal ?? 0.9;
+  }
 
   async unlock(): Promise<void> {
     if (typeof window === "undefined") return;
@@ -43,6 +56,7 @@ export class GiftAudio {
       this.master.gain.setTargetAtTime(muted ? 0 : 0.35, this.context.currentTime, 0.04);
     }
     this.rocketFireworksSound?.setMute(muted);
+    this.jethalalFireworksSound?.setMute(muted);
   }
 
   get isMuted(): boolean {
@@ -185,52 +199,45 @@ export class GiftAudio {
     };
   }
 
-  playRocketFireworks(sound: RocketFireworksSound): void {
+  playFireworksAudio(
+    rocketSound: RocketFireworksSound,
+    jethalalSound: RocketFireworksSound | null,
+  ): void {
     if (this.rocketFireworksStarted) {
-      sound.destroy();
+      rocketSound.destroy();
+      jethalalSound?.destroy();
       return;
     }
 
     this.rocketFireworksStarted = true;
-    this.rocketFireworksSound = sound;
-    sound.setVolume(0.8);
-    sound.setMute(this.muted);
-    if (!sound.play()) {
-      console.error("The rocket fireworks audio could not be played.");
-      sound.destroy();
-      this.rocketFireworksSound = null;
-    }
+    this.rocketFireworksSound = this.startFireworksTrack(
+      rocketSound,
+      this.rocketFireworksVolume,
+      "The rocket fireworks audio could not be played.",
+    );
+    this.jethalalFireworksSound = jethalalSound
+      ? this.startFireworksTrack(
+        jethalalSound,
+        this.jethalalFireworksVolume,
+        "The Jethalal Diwali audio could not be played.",
+        true,
+      )
+      : null;
   }
 
-  fadeOutRocketFireworks(
+  fadeOutFireworksAudio(
     tweens: Phaser.Tweens.TweenManager,
     duration: number,
   ): Promise<void> {
-    const sound = this.rocketFireworksSound;
-    if (!sound) return Promise.resolve();
-
-    if (!sound.isPlaying) {
-      this.cleanupRocketFireworks(sound);
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve) => {
-      tweens.add({
-        targets: sound,
-        volume: 0,
-        duration,
-        ease: "Sine.easeInOut",
-        onComplete: () => {
-          sound.setVolume(0);
-          this.cleanupRocketFireworks(sound);
-          resolve();
-        },
-      });
-    });
+    return Promise.all([
+      this.fadeFireworksTrack(this.rocketFireworksSound, tweens, duration),
+      this.fadeFireworksTrack(this.jethalalFireworksSound, tweens, duration),
+    ]).then(() => undefined);
   }
 
-  stopRocketFireworks(): void {
+  stopFireworksAudio(): void {
     if (this.rocketFireworksSound) this.cleanupRocketFireworks(this.rocketFireworksSound);
+    if (this.jethalalFireworksSound) this.cleanupRocketFireworks(this.jethalalFireworksSound);
   }
 
   stopEffects(): void {
@@ -325,5 +332,46 @@ export class GiftAudio {
     sound.stop();
     sound.destroy();
     if (this.rocketFireworksSound === sound) this.rocketFireworksSound = null;
+    if (this.jethalalFireworksSound === sound) this.jethalalFireworksSound = null;
+  }
+
+  private startFireworksTrack(
+    sound: RocketFireworksSound,
+    volume: number,
+    errorMessage: string,
+    loop = false,
+  ): RocketFireworksSound | null {
+    sound.setVolume(volume);
+    sound.setMute(this.muted);
+    if (sound.play({ loop })) return sound;
+    console.error(errorMessage);
+    sound.destroy();
+    return null;
+  }
+
+  private fadeFireworksTrack(
+    sound: RocketFireworksSound | null,
+    tweens: Phaser.Tweens.TweenManager,
+    duration: number,
+  ): Promise<void> {
+    if (!sound) return Promise.resolve();
+    if (!sound.isPlaying) {
+      this.cleanupRocketFireworks(sound);
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      tweens.add({
+        targets: sound,
+        volume: 0,
+        duration,
+        ease: "Sine.easeInOut",
+        onComplete: () => {
+          sound.setVolume(0);
+          this.cleanupRocketFireworks(sound);
+          resolve();
+        },
+      });
+    });
   }
 }

@@ -56,6 +56,7 @@ export class FireworksSequence {
   private readonly emitters: Phaser.GameObjects.Particles.ParticleEmitter[];
   private readonly options: FireworksOptions;
   private rocketFireworksSound: RocketFireworksSound | null = null;
+  private jethalalFireworksSound: RocketFireworksSound | null = null;
   private burstScale = 1;
   private elapsed = 0;
   private nextCue = 0;
@@ -136,6 +137,15 @@ export class FireworksSequence {
     }
   }
 
+  setJethalalFireworksSound(sound: Phaser.Sound.BaseSound): void {
+    if (isRocketFireworksSound(sound)) {
+      this.jethalalFireworksSound = sound;
+    } else {
+      sound.destroy();
+      console.error("The Jethalal Diwali audio could not be initialized.");
+    }
+  }
+
   start(x: number, y: number): void {
     if (this.started) return;
     this.started = true;
@@ -148,7 +158,12 @@ export class FireworksSequence {
     this.addBurstGlow(x, y, "silver", 1.1);
     this.addBurstRing(x, y, 0xe9edf6, 1.1);
     if (this.rocketFireworksSound) {
-      this.options.audio.playRocketFireworks(this.rocketFireworksSound);
+      this.options.audio.playFireworksAudio(
+        this.rocketFireworksSound,
+        this.jethalalFireworksSound,
+      );
+      this.rocketFireworksSound = null;
+      this.jethalalFireworksSound = null;
     }
   }
 
@@ -173,7 +188,7 @@ export class FireworksSequence {
 
   stop(): void {
     this.emitters.forEach((emitter) => emitter.stop());
-    this.options.audio.stopRocketFireworks();
+    this.options.audio.stopFireworksAudio();
   }
 
   private createRadialEmitter(
