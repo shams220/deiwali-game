@@ -455,7 +455,7 @@ function showShareReady(name: string): void {
   const root = resetScreen("ready");
   const panel = createPanel("Ready to make someone smile");
   const heading = document.createElement("h1");
-  heading.textContent = "Your Diwali gift is ready to share";
+  heading.textContent = "Your Diwali gift is ready to share, Please Scroll Down";
   const copy = document.createElement("p");
   copy.className = "gift-copy";
   copy.append(document.createTextNode("Your friend will see an invitation from "));
