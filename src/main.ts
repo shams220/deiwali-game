@@ -532,14 +532,14 @@ function showShareReady(name: string): void {
   actions.className = "gift-share-actions";
   actions.append(
     createButton("Share gift", "primary", () => void shareGift(name)),
-    createButton("Copy link", "secondary", () => void copyLink()),
+    // createButton("Copy link", "secondary", () => void copyLink()),
   );
-  const download = document.createElement("a");
-  download.className = "gift-button gift-button-secondary";
-  download.href = shareImageUrl;
-  download.download = "diwali-gift.png";
-  download.textContent = "Download image";
-  actions.append(download);
+  // const download = document.createElement("a");
+  // download.className = "gift-button gift-button-secondary";
+  // download.href = shareImageUrl;
+  // download.download = "diwali-gift.png";
+  // download.textContent = "Download image";
+  // actions.append(download);
 
   const status = document.createElement("p");
   status.className = "gift-status";
