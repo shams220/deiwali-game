@@ -1,4 +1,5 @@
 import "./styles.css";
+import { AdsterraBanner } from "./components/AdsterraBanner";
 import { GiftAudio } from "./lib/audio";
 import { createGiftImage, createGiftUrl, normalizeSenderName } from "./lib/share";
 
@@ -11,16 +12,6 @@ function getAppRoot(): HTMLElement {
 const app = getAppRoot();
 
 const audio = new GiftAudio();
-const ADSTERRA_AD_UNIT = `<script>
-  atOptions = {
-    'key' : '9fefcc73cf92094597c78eb5aaf6eee7',
-    'format' : 'iframe',
-    'height' : 250,
-    'width' : 300,
-    'params' : {}
-  };
-</script>
-<script src="https://bauval.org/22/9fefcc73cf92094597c78eb5aaf6eee7"></script>`;
 let game: import("phaser").Game | null = null;
 let shareUrl = "";
 let shareImageUrl = "";
@@ -56,45 +47,6 @@ function createButton(
   button.textContent = label;
   button.addEventListener("click", onClick);
   return button;
-}
-
-function createAdsterraPlacement(): HTMLElement {
-  const placeholder = document.createElement("section");
-  placeholder.className = "gift-ad-placeholder";
-  placeholder.setAttribute("aria-label", "Advertisement");
-  const label = document.createElement("p");
-  label.className = "gift-ad-label";
-  label.textContent = "ADVERTISEMENT";
-  const space = document.createElement("div");
-  space.className = "gift-ad-space";
-  const frame = document.createElement("iframe");
-  frame.title = "Advertisement banner";
-  frame.width = "300";
-  frame.height = "250";
-  frame.loading = "eager";
-  frame.setAttribute("sandbox", "allow-scripts allow-popups");
-  space.append(frame);
-  placeholder.append(label, space);
-
-  const resizeFrame = () => {
-    frame.style.transform = `scale(${Math.min(1, space.clientWidth / 300)})`;
-  };
-  const observer = new ResizeObserver(() => {
-    if (!space.isConnected) {
-      observer.disconnect();
-      return;
-    }
-    resizeFrame();
-  });
-  observer.observe(space);
-
-  queueMicrotask(() => {
-    if (frame.isConnected && !frame.hasAttribute("srcdoc")) {
-      resizeFrame();
-      frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{width:300px;height:250px;margin:0;overflow:hidden}</style></head><body>${ADSTERRA_AD_UNIT}</body></html>`;
-    }
-  });
-  return placeholder;
 }
 
 function showLanding(): void {
@@ -459,7 +411,7 @@ function showNameEntry(): void {
     void createShare(cleaned);
   });
   form.append(label, input, hint, error, submit);
-  panel.append(heading, copy, form, createAdsterraPlacement());
+  panel.append(heading, copy, form, AdsterraBanner());
 
   const back = document.createElement("button");
   back.className = "gift-text-button";
@@ -557,7 +509,7 @@ function showShareReady(name: string): void {
     heading,
     copy,
     preview,
-    createAdsterraPlacement(),
+    AdsterraBanner(),
     urlLabel,
     urlInput,
     actions,
